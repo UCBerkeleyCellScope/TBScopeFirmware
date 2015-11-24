@@ -46,7 +46,7 @@
 #define POSITION_Z_LIMIT 4
 
 #define DEFAULT_HALFSTEP_INTERVAL_XY 200 //this is the speed used for homing, moving to slide center, loading, etc.
-#define DEFAULT_HALFSTEP_INTERVAL_Z 100 //z can move a bit faster
+#define DEFAULT_HALFSTEP_INTERVAL_Z 50 //z can move a bit faster
 
 //all coordinates are relative to limit switches
 #define TEST_TARGET_X 3310
@@ -143,9 +143,6 @@ unsigned int move_stage(byte axis, byte dir, unsigned int half_step_interval, bo
 
    if (disable_after)
      digitalWrite(en_pin,HIGH);
-
-   //send response
-   notify();
    
    return i;
 }
@@ -216,7 +213,7 @@ void goto_special_position(byte position) {
       break;
     case POSITION_Z_LIMIT:
       unsigned long timeout_millis = millis() + TIMEOUT_DURATION;
-      move_stage(3,1,DEFAULT_HALFSTEP_INTERVAL_Z,1,1,1000); //move down slightly in Z
+      move_stage(3,1,DEFAULT_HALFSTEP_INTERVAL_Z,1,1,5000); //move down slightly in Z
       while ((move_stage(3,0,DEFAULT_HALFSTEP_INTERVAL_Z,1,1,10000)==10000)) //move Z up until it hits limit
       {
         if (millis()>timeout_millis)
@@ -332,7 +329,8 @@ void setup()
 
   ble_set_name(device_name);
 
-  //goto_special_position(POSITION_LOADING);
+  goto_special_position(POSITION_XY_LIMIT);
+  goto_special_position(POSITION_Z_LIMIT);
 }
 
 byte fetch_humidity_temperature(unsigned int *p_H_dat, unsigned int *p_T_dat)
@@ -394,19 +392,18 @@ void loop()
         dir =  (data0 & B00000100) >> 2;
         stop_on_home = (data0 & B00000010) >> 1;
         disable_after = (data0 & B00000001);
-        num_steps = (data1 << 8) | data2;
-        
+        num_steps = (data1 << 8) | data2; 
         move_stage(axis,dir,half_step_interval,stop_on_home,disable_after,num_steps);
         notify();
-        
         break;
+        
       case CMD_SET_SPEED:
         half_step_interval = (data1 << 8) | data2;
-        
         break;
         
       case CMD_SPECIAL_POSITION:
         goto_special_position(data1);
+        notify();
         break;
         
       case CMD_SET_LIGHT:
