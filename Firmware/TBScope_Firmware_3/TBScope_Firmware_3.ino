@@ -47,7 +47,7 @@
 #define POSITION_Z_DOWN 5
 
 #define DEFAULT_HALFSTEP_INTERVAL_XY 200 //this is the speed used for homing, moving to slide center, loading, etc.
-#define DEFAULT_HALFSTEP_INTERVAL_Z 50 //z can move a bit faster
+#define DEFAULT_HALFSTEP_INTERVAL_Z 25 //z can move a bit faster
 
 //all coordinates are relative to limit switches
 //all these are deprecated...
@@ -61,7 +61,7 @@
 #define LOADING_Y 10000
 #define LOADING_Z 0
 
-#define Z_DOWN_OFFSET 50000
+#define Z_DOWN_OFFSET 40000
 
 
 #define BLE_BLINK_FREQ 1
