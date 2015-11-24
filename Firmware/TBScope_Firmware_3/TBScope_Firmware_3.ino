@@ -453,20 +453,25 @@ void loop()
     digitalWrite(GREEN_INDICATOR_PIN,HIGH);
   }
 
+  
   // check the battery
   if ((analogRead(BATT_PIN) * 2) < MIN_BATT_VOLTAGE)
   {
-    digitalWrite(GREEN_INDICATOR_PIN,HIGH);
-    for (int i=0;i<7;i++)
+    delay(100);
+    if ((analogRead(BATT_PIN) * 2) < MIN_BATT_VOLTAGE) //make sure this isn't just a temp transient
     {
-      digitalWrite(RED_INDICATOR_PIN,HIGH);
-      digitalWrite(GREEN_INDICATOR_PIN,LOW);
-      delay(125);
-      digitalWrite(RED_INDICATOR_PIN,LOW);
       digitalWrite(GREEN_INDICATOR_PIN,HIGH);
-      delay(125);
+      for (int i=0;i<7;i++)
+      {
+        digitalWrite(RED_INDICATOR_PIN,HIGH);
+        digitalWrite(GREEN_INDICATOR_PIN,LOW);
+        delay(125);
+        digitalWrite(RED_INDICATOR_PIN,LOW);
+        digitalWrite(GREEN_INDICATOR_PIN,HIGH);
+        delay(125);
+      }
+      digitalWrite(KILL_PIN, HIGH);
     }
-    digitalWrite(KILL_PIN, HIGH);
   }
   
   // Allow BLE Shield to send/receive data
