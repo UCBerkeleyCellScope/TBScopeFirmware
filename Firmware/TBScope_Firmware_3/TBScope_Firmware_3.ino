@@ -44,11 +44,13 @@
 #define POSITION_SLIDE_CENTER 2
 #define POSITION_LOADING 3
 #define POSITION_Z_LIMIT 4
+#define POSITION_Z_DOWN 5
 
 #define DEFAULT_HALFSTEP_INTERVAL_XY 200 //this is the speed used for homing, moving to slide center, loading, etc.
 #define DEFAULT_HALFSTEP_INTERVAL_Z 50 //z can move a bit faster
 
 //all coordinates are relative to limit switches
+//all these are deprecated...
 #define TEST_TARGET_X 3310
 #define TEST_TARGET_Y 3020
 #define TEST_TARGET_Z 15900
@@ -58,6 +60,9 @@
 #define LOADING_X 2000
 #define LOADING_Y 10000
 #define LOADING_Z 0
+
+#define Z_DOWN_OFFSET 50000
+
 
 #define BLE_BLINK_FREQ 1
 #define TIMEOUT_DURATION 20000
@@ -191,8 +196,8 @@ void goto_special_position(byte position) {
           return;
       }
       
-      break;    
-    }
+      break;  
+    }  
     case POSITION_TEST_TARGET:
       goto_special_position(POSITION_XY_LIMIT);
       move_stage(2,1,DEFAULT_HALFSTEP_INTERVAL_XY,1,1,TEST_TARGET_Y);
@@ -206,19 +211,27 @@ void goto_special_position(byte position) {
       move_stage(1,0,DEFAULT_HALFSTEP_INTERVAL_XY,1,1,SLIDE_CENTER_X);  
       //move_stage(3,1,100,1,1,SLIDE_CENTER_Z);  
       break;
+      
     case POSITION_LOADING:
       goto_special_position(POSITION_XY_LIMIT);
       move_stage(1,0,DEFAULT_HALFSTEP_INTERVAL_XY,1,1,LOADING_X);        
       move_stage(2,1,DEFAULT_HALFSTEP_INTERVAL_XY,1,1,LOADING_Y);
       break;
+      
     case POSITION_Z_LIMIT:
+    {
       unsigned long timeout_millis = millis() + TIMEOUT_DURATION;
       move_stage(3,1,DEFAULT_HALFSTEP_INTERVAL_Z,1,1,5000); //move down slightly in Z
       while ((move_stage(3,0,DEFAULT_HALFSTEP_INTERVAL_Z,1,1,10000)==10000)) //move Z up until it hits limit
       {
         if (millis()>timeout_millis)
           return;
-      }    
+      }  
+      break;
+    }
+    case POSITION_Z_DOWN:
+      move_stage(3,1,DEFAULT_HALFSTEP_INTERVAL_Z,1,1,Z_DOWN_OFFSET);        
+      break;
   }  
   
   notify();
@@ -329,8 +342,9 @@ void setup()
 
   ble_set_name(device_name);
 
-  goto_special_position(POSITION_XY_LIMIT);
   goto_special_position(POSITION_Z_LIMIT);
+  goto_special_position(POSITION_XY_LIMIT);
+
 }
 
 byte fetch_humidity_temperature(unsigned int *p_H_dat, unsigned int *p_T_dat)
