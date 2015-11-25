@@ -9,6 +9,8 @@
 #include <boards.h>
 #include <RBL_nRF8001.h>
 
+#define FIRMWARE_VERSION 100
+
 //pins
 #define MICROSTEP1 34
 #define MICROSTEP2 35
@@ -135,15 +137,20 @@ unsigned int move_stage(byte axis, byte dir, unsigned int half_step_interval, bo
   unsigned int i;
   for (i=0;i<num_steps;i++)
   {
-    if (stop_on_home && dir==home_dir)
-      if (analogRead(limit_switch_pin)<LIMIT_SWITCH_THRESHOLD)
+    //if (stop_on_home && dir==home_dir)
+      if ((analogRead(limit_switch_pin)<LIMIT_SWITCH_THRESHOLD) && dir==home_dir)
+      {
         break;
-        
-    //step    
-    digitalWrite(step_pin, HIGH);
-    delayMicroseconds(half_step_interval);
-    digitalWrite(step_pin, LOW);
-    delayMicroseconds(half_step_interval);
+      }
+      else
+      {
+        //step    
+        digitalWrite(step_pin, HIGH);
+        delayMicroseconds(half_step_interval);
+        digitalWrite(step_pin, LOW);
+        delayMicroseconds(half_step_interval);
+      }
+
    }  
 
    if (disable_after)
@@ -277,7 +284,13 @@ void send_status()
   buf[2] = (humidity & 0x00FF); //low byte  
   ble_write_bytes(buf,3);
   delay(50);
-  
+
+  buf[0] = 0xFB; //0xFB = firmware version
+  buf[1] = FIRMWARE_VERSION; //high byte
+  buf[2] = 0x0; //low byte  
+  ble_write_bytes(buf,3);
+  delay(50); 
+   
 }
 
 void setup()
@@ -285,8 +298,9 @@ void setup()
   Wire.begin();        // join i2c bus for temp/humidity sensor
 
   Serial.begin(57600);
-  Serial.println("TB Scope Firmware 2015-07-29");
-   
+  Serial.print("TB Scope Firmware ");
+  Serial.println(FIRMWARE_VERSION);
+  
   pinMode(MICROSTEP1, OUTPUT);
   pinMode(MICROSTEP2, OUTPUT);
   pinMode(MICROSTEP3, OUTPUT);   
@@ -404,7 +418,7 @@ void loop()
       case CMD_MOVE:
         axis = (data0 & B00011000) >> 3;
         dir =  (data0 & B00000100) >> 2;
-        stop_on_home = (data0 & B00000010) >> 1;
+        stop_on_home = (data0 & B00000010) >> 1; 
         disable_after = (data0 & B00000001);
         num_steps = (data1 << 8) | data2; 
         move_stage(axis,dir,half_step_interval,stop_on_home,disable_after,num_steps);
@@ -484,7 +498,7 @@ void loop()
       digitalWrite(KILL_PIN, HIGH);
     }
   }
-  
+       
   // Allow BLE Shield to send/receive data
   ble_do_events();  
 
