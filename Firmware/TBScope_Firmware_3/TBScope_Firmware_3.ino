@@ -9,7 +9,7 @@
 #include <boards.h>
 #include <RBL_nRF8001.h>
 
-#define FIRMWARE_VERSION 100
+#define FIRMWARE_VERSION 101
 
 //pins
 #define MICROSTEP1 34
@@ -49,7 +49,7 @@
 #define POSITION_Z_DOWN 5
 
 #define DEFAULT_HALFSTEP_INTERVAL_XY 200 //this is the speed used for homing, moving to slide center, loading, etc.
-#define DEFAULT_HALFSTEP_INTERVAL_Z 25 //z can move a bit faster
+#define DEFAULT_HALFSTEP_INTERVAL_Z 5 //z can move a bit faster
 
 //all coordinates are relative to limit switches
 //all these are deprecated...
